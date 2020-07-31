@@ -789,5 +789,19 @@
         } else if (chartTitleText == "Test Case Line Chart") {
             createAnnotationBox(-400, 100, 10, 10, -100, 100, maxX + margin.left - 10, maxY, -380, 120, "Highest Test Point", "This is the highest test point of ", "COVID 19 performed.");
         }
+
+        if (parseInt(d3.select("#popUpDialog")
+            .select("#message")
+            .attr("step")) <= 5) {
+            d3.select("#popUpDialog")
+                .classed("hidden", false)
+                .style("left", (margin.left + width / 2 - 200) + "px")
+                .style("top", (margin.top + 180) + "px")
+                .style("width", 350 + "px")
+                .style("padding-left", 20 + "px")
+                .style("padding-right", 20 + "px")
+                .select("#message")
+                .text("Awesome! We saw the line chart now. Please simply hover mouse on the data points to see more details.");
+        }
     }
 </script>
