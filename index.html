@@ -3,6 +3,7 @@
 
 <!-- Load d3.js -->
 <script src="https://d3js.org/d3.v5.min.js"></script>
+
 <style type="text/css">
     h1 {
         text-align: center;
@@ -12,6 +13,7 @@
         position: relative;
     }
 
+    /* tooltip and popup dialog styling */
     #tooltip,
     #popUpDialog {
         position: absolute;
@@ -24,6 +26,7 @@
         z-index: 1;
     }
 
+    /* tooltip tail */
     #popUpDialog::after {
         content: " ";
         position: absolute;
@@ -35,18 +38,12 @@
         border-color: #ede5d8 transparent transparent transparent;
     }
 
+    /* hidden class */
     #tooltip.hidden,
     #popUpDialog.hidden,
     #selectDiv.hidden,
     #closeDiv.hidden {
         display: none;
-    }
-
-    .close-x {
-        stroke: black;
-        fill: transparent;
-        stroke-linecap: round;
-        stroke-width: 5;
     }
 </style>
 
@@ -72,11 +69,14 @@
 </body>
 
 <script>
+    // enable all the event listeners on the svg elment.
     function enableMapListeners(width, height, date, margin, totalConfirmedWithState, totalDeathsWithState, totalTestsWithState, json) {
         var lineChartData = totalConfirmedWithState;
         var titleText = "Confirm Case Heatmap";
         var chartTitleText = "Confirm Case Line Chart";
         var circleColor = "red";
+
+        // populate map territories events including tooltip and loading second page.
         d3.select("svg")
             .selectAll("path")
             .on("mouseover", function (d) {
@@ -147,10 +147,11 @@
                     });
             });
 
+        // Add selection box and trigger for switching heat maps.
         d3.select("#selectButton")
             .on("change", function (d) {
                 var selectedOption = d3.select(this).property("value");
-                if (selectedOption == "Death Case Heatmap") {
+                if (selectedOption == "Death Case Heatmap") {   //Switch to death case heatmap
                     lineChartData = totalDeathsWithState;
                     titleText = "Death Case Heatmap";
                     chartTitleText = "Death Case Line Chart";
@@ -180,7 +181,7 @@
 
                     createAnnotationBox(100, 100, 10, 10, 100, 100, 1302, 381, 130, 130, "Most Deadly State", "New York state has the highest number of ", "deaths caused by COVID 19 cases.");
                     createAnnotationBox(-400, 100, 10, 10, -100, 100, 580, 481, -380, 130, "Second Most Deadly State", "California state has the second highest ", "deaths caused by COVID 19 cases.");
-                } else if (selectedOption == "Confirm Case Heatmap") {
+                } else if (selectedOption == "Confirm Case Heatmap") {  //Switch to confirm case heatmap
                     lineChartData = totalConfirmedWithState;
                     titleText = "Confirm Case Heatmap";
                     chartTitleText = "Confirm Case Line Chart";
@@ -210,7 +211,7 @@
                     createAnnotationBox(100, 100, 10, 10, 100, 100, 1302, 381, 130, 130, "Most Infected State", "New York state has the highest number of ", "confirmed COVID 19 cases.");
                     createAnnotationBox(-400, 100, 10, 10, -100, 100, 580, 481, -380, 130, "Second Most Infected State", "California state has the second highest ", "number of confirmed COVID 19 cases.");
                     createAnnotationBox(-400, 100, 10, 10, -100, 100, 620, 700, -380, 130, "Least Infected State", "Alaska state has the lowest ", "number of confirmed COVID 19 cases.");
-                } else if (selectedOption == "Test Case Heatmap") {
+                } else if (selectedOption == "Test Case Heatmap") { //Switch to test case heatmap
                     lineChartData = totalTestsWithState;
                     titleText = "Test Case Heatmap";
                     chartTitleText = "Test Case Line Chart";
@@ -242,11 +243,13 @@
                     createAnnotationBox(100, -200, 10, 10, 100, -100, 800, 381, 130, -180, "Least Tested State", "Wyoming state has the least ", "number of tested COVID 19 cases.");
                 }
 
-                d3.select("#title")
+                // update title if any updates on the selections
+                d3.select("#title") 
                     .text(titleText);
             });
     }
 
+    // Main function for creating customized annotation box.
     function createAnnotationBox(rx, ry, x1, y1, x2, y2, gx, gy, tx, ty, textTitle, text1, text2) {
         var annotationG = d3.select("svg")
             .append("g")
@@ -299,13 +302,17 @@
             .style("opacity", 1);
     }
 
+    //Main function for loading first page of the heatmaps
     function loadFirstPage(width, height, totalConfirmedWithState, totalDeathsWithState, totalTestsWithState, svg, date, margin, json) {
+
+        // prepare geoJson map
         var projection = d3.geoAlbersUsa()
             .translate([width / 2, height / 2])
             .scale([1200]);
 
         var path = d3.geoPath(projection);
 
+        //prepare necessary data and save it to geo json dataset
         for (var i = 0; i < totalConfirmedWithState.length; i++) {
             var stateName = totalConfirmedWithState[i].Province_State;
             var totalConfirmed = parseInt(totalConfirmedWithState[i].Total);
@@ -318,7 +325,7 @@
             }
         }
 
-
+        //prepare necessary data and save it to geo json dataset
         for (var i = 0; i < totalDeathsWithState.length; i++) {
             var stateName = totalDeathsWithState[i].Province_State;
             var totalDeath = parseInt(totalDeathsWithState[i].Total);
@@ -331,6 +338,7 @@
             }
         }
 
+        //prepare necessary data and save it to geo json dataset
         for (var i = 0; i < totalTestsWithState.length; i++) {
             var stateName = totalTestsWithState[i].Province_State;
             var totalTests = parseInt(totalTestsWithState[i].Total);
@@ -343,12 +351,14 @@
             }
         }
 
+        //prepare log scale for heat map colors
         var logScale = d3.scaleLog()
             .domain([
                 d3.min(json.features, d => d.properties.value),
                 d3.max(json.features, d => d.properties.value)
             ]);
 
+        //prepare heat map colors
         var color = d3.scaleSequential(
             (d) => d3.interpolateReds(logScale(d))
         )
@@ -366,6 +376,8 @@
         d3.select("#title")
             .text("Confirm Case Heatmap")
             .style("text-align", "center");
+
+        // load and display geo json heat map with colors
         svg.selectAll("path")
             .data(json.features)
             .enter()
@@ -376,6 +388,7 @@
             })
             .style("stroke", "black");
 
+        //Enable/Disable popup dialog.
         if (parseInt(d3.select("#popUpDialog")
             .select("#message")
             .attr("step")) >= 5) {
@@ -402,7 +415,7 @@
                 .attr("step", 1);
         }
 
-
+        // Add triggers for the popup dialogs.
         d3.select("#popUpDialog")
             .select("button")
             .on("mouseover", function (d) {
@@ -414,6 +427,7 @@
                     .style("cursor", "default");
             })
             .on("click", function (d) {
+                //Below are the logic for switching dialogs...
                 var step = parseInt(d3.select("#popUpDialog")
                     .select("#message")
                     .attr("step"));
@@ -515,16 +529,21 @@
                 }
             });
 
+        // Prepare annotation boxes..
         createAnnotationBox(100, 100, 10, 10, 100, 100, 1302, 381, 130, 130, "Most Infected State", "New York state has the highest number of ", "confirmed COVID 19 cases.");
         createAnnotationBox(-400, 100, 10, 10, -100, 100, 580, 481, -380, 130, "Second Most Infected State", "California state has the second highest ", "number of confirmed COVID 19 cases.");
         createAnnotationBox(-400, 100, 10, 10, -100, 100, 620, 700, -380, 130, "Least Infected State", "Alaska state has the lowest ", "number of confirmed COVID 19 cases.");
     }
 
+    //Main function for DOM body on load call back
     async function init() {
+
+        //Prepare window sizes...
         var margin = { top: 10, right: 10, bottom: 50, left: 70 };
         var width = 1920 - margin.left - margin.right;
         var height = 1080 - margin.top - margin.bottom;
 
+        //Add selection box element...
         var selectionGroup = ["Confirm Case Heatmap", "Death Case Heatmap", "Test Case Heatmap"];
         d3.select("#selectButton")
             .selectAll("option")
@@ -544,6 +563,7 @@
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+        //Asynconously load csv datasets..
         const data = await d3.csv("time_series_covid19_confirmed_US.csv");
         const data_state = await d3.csv("time_series_covid19_confirmed_by_state_US.csv"); //derive from time_series_covid19_confirmed_US.csv
         const data_death_state = await d3.csv("time_series_covid19_deaths_by_state_US.csv"); //derive from time_series_covid19_deaths_US.csv
@@ -623,9 +643,11 @@
             totalTestsWithState.push(testCase);
         }
 
+        //load first page..
         loadFirstPage(width, height, totalConfirmedWithState, totalDeathsWithState, totalTestsWithState, svg, date, margin, json);
     }
 
+    //Main function to prepare second page...
     function loadSecondPage(width, height, date, lineChartData, margin, circleColor, chartTitleText, select_state) {
         d3.select("#selectDiv")
             .classed("hidden", true);
