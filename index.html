@@ -244,7 +244,7 @@
                 }
 
                 // update title if any updates on the selections
-                d3.select("#title") 
+                d3.select("#title")
                     .text(titleText);
             });
     }
@@ -387,6 +387,22 @@
                 return color(d.properties.value);
             })
             .style("stroke", "black");
+
+        var centroids = json.features.map(function (feature) {
+            return {centroid: path.centroid(feature), name: feature.properties.name};
+        });
+
+        //add state name on the map
+        svg.selectAll(".centroid")
+        .data(centroids)
+        .enter()
+        .append("text")
+        .attr("class","centroid")
+        .attr("x", function(d){return d.centroid[0]-30;})
+        .attr("y", function(d){return d.centroid[1];})
+        .text(function(d){return d.name})
+        .style("pointer-events", "none")
+        .style("font-size", 12);
 
         //Enable/Disable popup dialog.
         if (parseInt(d3.select("#popUpDialog")
