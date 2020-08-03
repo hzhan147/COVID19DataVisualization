@@ -141,9 +141,12 @@
                     .style("opacity", 0)
                     .remove()
                     .on("end", function (d) {
+                        var selectedState = d3.select("#tooltip").select("#state").text();
                         d3.select("#title")
-                            .text(chartTitleText)
-                        loadSecondPage(width, height, date, lineChartData, margin, circleColor, chartTitleText, d3.select("#tooltip").select("#state").text());
+                            .text(selectedState +" "+ chartTitleText)
+
+                        
+                        loadSecondPage(width, height, date, lineChartData, margin, circleColor, chartTitleText, selectedState);
                     });
             });
 
@@ -389,20 +392,20 @@
             .style("stroke", "black");
 
         var centroids = json.features.map(function (feature) {
-            return {centroid: path.centroid(feature), name: feature.properties.name};
+            return { centroid: path.centroid(feature), name: feature.properties.name };
         });
 
         //add state name on the map
         svg.selectAll(".centroid")
-        .data(centroids)
-        .enter()
-        .append("text")
-        .attr("class","centroid")
-        .attr("x", function(d){return d.centroid[0]-30;})
-        .attr("y", function(d){return d.centroid[1];})
-        .text(function(d){return d.name})
-        .style("pointer-events", "none")
-        .style("font-size", 12);
+            .data(centroids)
+            .enter()
+            .append("text")
+            .attr("class", "centroid")
+            .attr("x", function (d) { return d.centroid[0] - 30; })
+            .attr("y", function (d) { return d.centroid[1]; })
+            .text(function (d) { return d.name })
+            .style("pointer-events", "none")
+            .style("font-size", 12);
 
         //Enable/Disable popup dialog.
         if (parseInt(d3.select("#popUpDialog")
